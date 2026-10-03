@@ -106,9 +106,6 @@ func (s *server) handleChat(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 
-	for key, values := range ai.UIMessageStreamHeaders() {
-		w.Header()[key] = values
-	}
 	keepAlive := 15 * time.Second // holds the connection open through quiet stretches of a coding run
 	if err := ai.PipeUIMessageChunksToResponse(chunks, w, &ai.UIMessageStreamResponseInit{KeepAliveMs: &keepAlive}); err != nil {
 		log.Printf("write stream: %v", err)
