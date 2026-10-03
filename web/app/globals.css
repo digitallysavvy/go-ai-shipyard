@@ -1,0 +1,81 @@
+@import 'tailwindcss';
+
+/*
+ * Visual language borrowed from the go-ai logo: chunky ink outlines, rounded
+ * panels, Go blue, and the gopher's light blue. Amber is reserved for the one
+ * moment that needs a human decision.
+ */
+@theme {
+  --color-paper: #eef6fa;
+  --color-ink: #000000;
+  --color-go: #00add8;
+  --color-go-deep: #007d9c;
+  --color-gopher: #8fd0ee;
+  --color-gopher-soft: #d6eff9;
+  --color-amber: #ffc83d;
+  --color-pass: #1f9d63;
+  --color-fail: #d93d42;
+  --color-muted: #4b5b66;
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-go-mono), ui-monospace, monospace;
+
+  --shadow-ink: 3px 3px 0 0 #000;
+  --shadow-ink-lg: 5px 5px 0 0 #000;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-go);
+  outline-offset: 2px;
+}
+
+/* The one orchestrated motion: data moving along an active pipeline link. */
+@keyframes flow {
+  to {
+    background-position: 24px 0;
+  }
+}
+
+.link-active {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-go) 0 12px,
+    transparent 12px 24px
+  );
+  background-size: 24px 100%;
+  animation: flow 0.6s linear infinite;
+}
+
+.link-waiting {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-ink) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-active {
+    animation: none;
+  }
+}
+
+.terminal::-webkit-scrollbar {
+  width: 8px;
+}
+.terminal::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}

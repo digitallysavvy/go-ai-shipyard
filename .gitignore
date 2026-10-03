@@ -1,0 +1,15 @@
+# Secrets and local state
+.env
+.data/
+
+# Local Go workspace (for developing against a go-ai checkout)
+go.work
+go.work.sum
+
+# Web
+web/node_modules/
+web/.next/
+web/next-env.d.ts
+web/*.tsbuildinfo
+
+.DS_Store
