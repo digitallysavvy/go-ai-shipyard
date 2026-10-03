@@ -172,6 +172,9 @@ export default function Page() {
             </button>
           )}
         </form>
+        <p className="px-4 pb-2 text-center text-[11px] text-muted">
+          Go is a trademark of Google. The Go gopher, whenever used, is an original creation by Renée French.
+        </p>
       </footer>
     </div>
   );
