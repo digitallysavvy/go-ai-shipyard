@@ -2,7 +2,7 @@ module github.com/digitallysavvy/go-ai-demo
 
 go 1.26.0
 
-require github.com/digitallysavvy/go-ai v0.5.1
+require github.com/digitallysavvy/go-ai v0.5.2
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
