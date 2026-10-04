@@ -1,21 +1,35 @@
 <div align="center">
   <img src="web/public/logo.png" alt="go-ai" width="96">
   <h1>Shipyard</h1>
-  <p><strong>A Next.js chat UI, a Go backend built with the <a href="https://goaisdk.com">Go AI SDK</a>, and Claude Code or Codex doing the coding.</strong></p>
+  <p><strong>Tell it what's broken. It finds the cause, asks before changing anything, and has Claude Code or Codex make the fix while you watch.</strong></p>
 </div>
 
 <p align="center">
   <img src="docs/shipyard.png" alt="Shipyard: Codex fixes a failing Go test after the user approves the change" width="860">
 </p>
 
-Shipyard is the reference app for [go-ai](https://github.com/digitallysavvy/go-ai). Ask it to fix a Go project with failing tests and watch the whole path:
+## What it does
 
-1. **Your existing frontend works as is.** The browser uses the stock `useChat` hook from `@ai-sdk/react`. The backend is Go, and it speaks the same UI message stream protocol as a TypeScript AI SDK backend.
-2. **The Go backend streams.** A go-ai `ToolLoopAgent` runs the tests, reads the code, and streams every step to the browser as it happens.
-3. **Risky tools wait for a human.** The agent can ask to hand the change to a coding agent, but it can't do it alone. The request shows up in the chat with Approve and Deny buttons, and the server checks a signature on your answer, so the browser can't forge an approval.
-4. **A coding agent does the work.** After you approve, the go-ai harness drives Claude Code or Codex in a sandbox copy of the project. Its commands and edits stream into the chat live, the changes sync back, and the agent reruns the tests.
+Shipyard is a chat app that fixes a failing Go project.
 
-Switch between **Claude Code** and **Codex** with one toggle. It swaps both the chat model (Anthropic or OpenAI) and the coding agent; the Go code doesn't change.
+1. **You describe the problem** in plain language, for example "CI is red on shortlink, find out why and fix it."
+2. **It investigates.** Shipyard runs the tests and reads the code to find the cause, and tells you what it found.
+3. **It asks before changing anything.** When it knows what to change, it shows you the exact task it wants to hand off, with Approve and Deny buttons.
+4. **A coding agent makes the fix.** After you approve, Claude Code or Codex edits a sandbox copy of the project. Its commands and edits stream into the chat as they happen.
+5. **It checks the result.** The changes come back as a diff, Shipyard reruns the tests, and it tells you what was wrong and what changed.
+
+A toggle switches between **Claude Code** (with an Anthropic model running the chat) and **Codex** (with an OpenAI model). Everything else stays the same.
+
+## Why it exists
+
+Shipyard is the reference app for the [Go AI SDK](https://goaisdk.com) ([go-ai](https://github.com/digitallysavvy/go-ai)). Each step above exercises one SDK feature, so you can copy the pattern you need:
+
+- **A React chat UI on a Go backend.** The browser uses the stock `useChat` hook from `@ai-sdk/react`. The Go server speaks the same streaming protocol as a TypeScript AI SDK backend, so the frontend needs no changes.
+- **An agent with tools.** A go-ai `ToolLoopAgent` investigates with `run_tests`, `list_files` and `read_file`, and streams every step.
+- **Human approval for risky tools.** `delegate_to_coding_agent` requires approval. The server signs each approval request and checks the signature on your answer, so the browser can't forge one.
+- **Coding agents from Go.** The go-ai harness runs Claude Code or Codex in a sandbox, streams their activity into the chat, and reads the changed files back.
+
+## How the pieces fit
 
 ```mermaid
 flowchart LR
@@ -44,7 +58,7 @@ Open http://localhost:3000 and click the suggested prompt.
 
 The first coding-agent run takes longer: the harness installs the Claude Code or Codex bridge into the sandbox. Later runs start in a few seconds.
 
-## How it works
+## Code tour
 
 | File | What it does |
 | --- | --- |

@@ -16,9 +16,9 @@ const goMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Shipyard: a go-ai demo',
+  title: 'Shipyard',
   description:
-    'useChat in the browser, a Go backend built with the Go AI SDK, tool approvals, and Claude Code or Codex doing the coding.',
+    'Describe a failing test, approve the fix, and watch Claude Code or Codex make it. A reference app for the Go AI SDK.',
   icons: { icon: '/logo.png' },
 };
 

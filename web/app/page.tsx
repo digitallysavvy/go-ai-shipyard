@@ -76,7 +76,7 @@ export default function Page() {
             <Image src="/logo.png" alt="go-ai" width={57} height={44} priority />
             <div>
               <h1 className="text-[19px] font-extrabold leading-none tracking-tight">Shipyard</h1>
-              <p className="mt-0.5 hidden text-[12.5px] text-muted sm:block">A Go backend built with the Go AI SDK</p>
+              <p className="mt-0.5 hidden text-[12.5px] text-muted sm:block">Fixes failing Go code. Built with the Go AI SDK.</p>
             </div>
           </div>
 
