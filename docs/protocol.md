@@ -33,8 +33,8 @@ Chunks Shipyard relies on:
 | `text-start`, `text-delta`, `text-end` | Agent text | `MessageView` |
 | `tool-input-available` (after `tool-input-start` and `tool-input-delta` when the model streams arguments) | A tool call and its arguments | `ToolPart` |
 | `tool-output-available` | A tool result | `ToolPart`, `TestsPart` |
-| `tool-approval-request` | `delegate_to_coding_agent` needs approval; carries `approvalId` and `signature` | `DelegatePart` |
-| `tool-output-denied` | The user denied | `DelegatePart` |
+| `tool-approval-request` | A tool with `ToolApproval` needs approval; carries `approvalId` and `signature` | `DelegatePart` for `delegate_to_coding_agent`, `ApprovalCard` for other tools |
+| `tool-output-denied` | The user denied | `DelegatePart`, or `ToolPart` for other tools |
 | `data-coder` | Coding-agent progress | `CoderCard` |
 | `error` | Anything that failed after streaming started | `useChat` (`error`) |
 

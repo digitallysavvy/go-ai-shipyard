@@ -48,12 +48,12 @@ Set `ToolApproval` on the tool. `true` always asks:
 ToolApproval: true,
 ```
 
-To ask only for some inputs, use a function:
+To ask only for some inputs, use a function. Ask when in doubt: here a missing or empty branch also needs approval, so a model that leaves it out can't skip the check.
 
 ```go
 ToolApproval: types.ToolNeedsApprovalFunc(func(ctx context.Context, input map[string]interface{}, opts types.ToolNeedsApprovalOptions) bool {
 	branch, _ := input["branch"].(string)
-	return branch == "main"
+	return branch == "" || branch == "main"
 }),
 ```
 

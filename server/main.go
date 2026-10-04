@@ -120,7 +120,7 @@ func envOr(key, fallback string) string {
 	return fallback
 }
 
-// repoRoot finds the directory holding go.mod so the server works whether it
+// repoRoot finds the directory holding workspace-template/ so the server works whether it
 // is started from the repo root (`go run ./server`) or from server/.
 func repoRoot() (string, error) {
 	dir, err := os.Getwd()
