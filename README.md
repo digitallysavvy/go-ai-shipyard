@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="web/public/logo.png" alt="go-ai" width="96">
+  <img src=".github/images/logo.png" alt="go-ai" width="96">
   <h1>Shipyard</h1>
   <p><strong>Tell it what's broken. It finds the cause, asks before changing anything, and has Claude Code or Codex make the fix while you watch.</strong></p>
 </div>
 
 <p align="center">
-  <img src="docs/shipyard.png" alt="Shipyard: Codex fixes a failing Go test after the user approves the change" width="860">
+  <img src=".github/images/shipyard.png" alt="Shipyard: Codex fixes a failing Go test after the user approves the change" width="860">
 </p>
 
 ## What it does
@@ -59,6 +59,8 @@ Open http://localhost:3000 and click the suggested prompt.
 The first coding-agent run takes longer: the harness installs the Claude Code or Codex bridge into the sandbox. Later runs start in a few seconds.
 
 ## Code tour
+
+For the full developer docs, start at [docs/README.md](docs/README.md). Coding agents should read [AGENTS.md](AGENTS.md) first.
 
 | File | What it does |
 | --- | --- |
