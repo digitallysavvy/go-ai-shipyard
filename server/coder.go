@@ -389,7 +389,7 @@ func unifiedDiff(before, changed map[string]string) string {
 	if len(changed) == 0 {
 		return ""
 	}
-	dir, err := os.MkdirTemp("", "go-ai-demo-diff-")
+	dir, err := os.MkdirTemp("", "go-ai-shipyard-diff-")
 	if err != nil {
 		return ""
 	}

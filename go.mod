@@ -1,4 +1,4 @@
-module github.com/digitallysavvy/go-ai-demo
+module github.com/digitallysavvy/go-ai-shipyard
 
 go 1.26.0
 

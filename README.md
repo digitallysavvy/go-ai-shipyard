@@ -33,8 +33,8 @@ flowchart LR
 You need Go 1.26+, Node.js 20.9+, pnpm and git, plus an Anthropic or OpenAI API key (or both).
 
 ```bash
-git clone https://github.com/digitallysavvy/go-ai-demo
-cd go-ai-demo
+git clone https://github.com/digitallysavvy/go-ai-shipyard
+cd go-ai-shipyard
 make setup          # creates .env and installs the web app
 $EDITOR .env        # add ANTHROPIC_API_KEY and/or OPENAI_API_KEY
 make dev            # Go server on :8080, web app on :3000

@@ -131,7 +131,7 @@ func repoRoot() (string, error) {
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			return "", errors.New("run the server from inside the go-ai-demo repo")
+			return "", errors.New("run the server from inside the go-ai-shipyard repo")
 		}
 		dir = parent
 	}
