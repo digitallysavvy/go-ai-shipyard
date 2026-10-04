@@ -294,17 +294,41 @@ func (l *activityLog) apply(chunk *provider.StreamChunk) bool {
 		if !ok || l.state.Events[idx].Kind != "run" {
 			return false
 		}
-		if m, ok := chunk.ToolResult.Result.(map[string]interface{}); ok {
-			if code, ok := toInt(m["exitCode"]); ok {
-				l.state.Events[idx].Exit = &code
-			}
-			if out, ok := m["output"].(string); ok {
-				l.state.Events[idx].Output = lastLines(l.strip(out), 8)
-			}
-		}
+		code, out := commandResult(chunk.ToolResult.Result, chunk.ToolResult.Error != nil)
+		l.state.Events[idx].Exit = &code
+		l.state.Events[idx].Output = lastLines(l.strip(out), 8)
 		return true
 	}
 	return false
+}
+
+// commandResult reads a shell command's exit status and output from a
+// harness tool result. Codex reports {exitCode, output}; Claude Code passes
+// through the Agent SDK's Bash result {stdout, stderr, interrupted} and marks
+// failures on the result instead of with an exit code.
+func commandResult(result interface{}, failed bool) (exit int, output string) {
+	exit = 0
+	if failed {
+		exit = 1
+	}
+	switch r := result.(type) {
+	case map[string]interface{}:
+		if code, ok := toInt(r["exitCode"]); ok {
+			exit = code
+		}
+		if out, ok := r["output"].(string); ok {
+			return exit, out
+		}
+		stdout, _ := r["stdout"].(string)
+		stderr, _ := r["stderr"].(string)
+		if interrupted, _ := r["interrupted"].(bool); interrupted && exit == 0 {
+			exit = 1
+		}
+		return exit, strings.TrimSpace(strings.TrimSpace(stdout) + "\n" + strings.TrimSpace(stderr))
+	case string:
+		return exit, r
+	}
+	return exit, ""
 }
 
 func (l *activityLog) finalMessage() string {

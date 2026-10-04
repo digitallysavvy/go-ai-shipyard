@@ -28,7 +28,8 @@ function EventLine({ event }: { event: CoderEvent }) {
               </span>
             )}
           </div>
-          {event.output && /\b(FAIL|ok|PASS)\b/.test(event.output) && (
+          {/* Show output for test runs and failed commands; other output is noise in a short log. */}
+          {event.output && (/\bgo test\b/.test(event.text) || (event.exit ?? 0) !== 0) && (
             <pre className="mt-1 ml-4 whitespace-pre-wrap text-[12px] leading-snug text-white/55">{event.output}</pre>
           )}
         </div>

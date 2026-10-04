@@ -60,3 +60,26 @@ func TestDescribeToolCall(t *testing.T) {
 		}
 	}
 }
+
+func TestCommandResultShapes(t *testing.T) {
+	cases := []struct {
+		name   string
+		result interface{}
+		failed bool
+		exit   int
+		output string
+	}{
+		{"codex ok", map[string]interface{}{"exitCode": float64(0), "output": "ok  example.com/x"}, false, 0, "ok  example.com/x"},
+		{"codex failure", map[string]interface{}{"exitCode": float64(1), "output": "FAIL"}, false, 1, "FAIL"},
+		{"claude code ok", map[string]interface{}{"stdout": "ok  example.com/x\n", "stderr": "", "interrupted": false}, false, 0, "ok  example.com/x"},
+		{"claude code failure", map[string]interface{}{"stdout": "--- FAIL: TestX\n", "stderr": "exit status 1"}, true, 1, "--- FAIL: TestX\nexit status 1"},
+		{"claude code interrupted", map[string]interface{}{"stdout": "", "stderr": "", "interrupted": true}, false, 1, ""},
+		{"plain string", "done", false, 0, "done"},
+	}
+	for _, c := range cases {
+		exit, out := commandResult(c.result, c.failed)
+		if exit != c.exit || out != c.output {
+			t.Errorf("%s: commandResult = %d, %q; want %d, %q", c.name, exit, out, c.exit, c.output)
+		}
+	}
+}
