@@ -18,7 +18,7 @@ const goMono = localFont({
 export const metadata: Metadata = {
   title: 'Shipyard',
   description:
-    'Describe a failing test, approve the fix, and watch Claude Code or Codex make it. A reference app for the Go AI SDK.',
+    'Describe a failing test, approve the fix, and watch Claude Code or Codex make it. The reference app for the Go AI SDK.',
   icons: { icon: '/logo.png' },
 };
 

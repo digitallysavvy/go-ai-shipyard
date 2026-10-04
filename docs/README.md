@@ -1,25 +1,20 @@
 # Shipyard docs
 
-Shipyard is a chat app that fixes a failing Go project. A Next.js `useChat` frontend talks to a Go server built with the Go AI SDK. The server's agent investigates, asks the user to approve a code change, and has Claude Code or Codex make it in a sandbox.
+Read [architecture.md](architecture.md) first, then only the page for the area you're changing. The task-to-page map, the terms (Shipyard, coding agent, pairing) and the rules are in [AGENTS.md](../AGENTS.md). Setup is in the [README](../README.md).
 
-These docs go from the whole picture to single files. Read the first page, then only the page for the area you're changing. Each page opens with a summary and a table of the files and symbols it covers.
-
-| Page | Read it when you |
+| Page | Covers |
 | --- | --- |
-| [architecture.md](architecture.md) | are new to the code, or need the end-to-end flow of one chat turn and the approval round trip |
-| [server.md](server.md) | change anything under `server/`: the chat endpoint, tools, the coding-agent runner, the workspace |
-| [web.md](web.md) | change anything under `web/`: the chat page, tool rows, the approval card, the coding-agent card, the pipeline header |
-| [protocol.md](protocol.md) | change data that crosses the wire: the request body, stream chunks, the `data-coder` part, approval fields |
-| [extending.md](extending.md) | add a tool, a pairing, a model or a sandbox provider, replace the sample project, or test unreleased go-ai |
-| [troubleshooting.md](troubleshooting.md) | can't get it to run, or something behaves oddly |
+| [architecture.md](architecture.md) | One request end to end, where state lives, design choices |
+| [server.md](server.md) | `server/`: endpoint, tools, coding-agent runner, workspace |
+| [web.md](web.md) | `web/`: chat page, tool rows, approval card, coding-agent card, header |
+| [protocol.md](protocol.md) | Request body, stream chunks, the `data-coder` part, approvals, `/api/status` |
+| [extending.md](extending.md) | Recipes: tools, approval, models, pairings, sandboxes, sample project, unreleased go-ai |
+| [troubleshooting.md](troubleshooting.md) | Failures, causes and fixes |
 
-For setup and a tour aimed at people, see the [README](../README.md). For rules every change must follow, see [AGENTS.md](../AGENTS.md).
+## Go AI SDK guides
 
-## SDK docs
-
-Shipyard uses these parts of the Go AI SDK. The guides explain the same patterns in more depth:
+Shipyard follows these guides:
 
 - [Serve a useChat frontend from Go](https://goaisdk.com/docs/build-a-chat-app/serve-usechat-from-go)
 - [Tool approval end to end](https://goaisdk.com/docs/build-a-chat-app/tool-approval)
 - [Coding agents with the harness](https://goaisdk.com/docs/build-a-chat-app/coding-agents-harness)
-- Agent-readable index of all SDK docs: https://goaisdk.com/llms.txt

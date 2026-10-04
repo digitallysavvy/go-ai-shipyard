@@ -1,39 +1,34 @@
 # AGENTS.md
 
-Shipyard is a chat app that fixes a failing Go project: a Next.js `useChat` frontend, a Go backend built with the [Go AI SDK](https://goaisdk.com) (`github.com/digitallysavvy/go-ai`), and Claude Code or Codex doing the coding through the go-ai harness. It is the reference app for the SDK, so code here should stay small, readable and copyable.
+Shipyard is a chat app that fixes a failing Go project. A Next.js `useChat` frontend talks to a Go server built with the Go AI SDK (`github.com/digitallysavvy/go-ai`). The server's agent finds the cause, asks the user to approve a change, and has Claude Code or Codex make it in a sandbox. It is the SDK's reference app, so code here should stay small enough to read in one sitting and copy into another project.
 
-Start here, then open only the doc you need. Every doc lists the files and symbols it covers, so you can go straight to the code.
+Start here. Then open only the doc for your task; each one names the files and symbols to go to next.
 
 ## Docs map
 
 | You want to | Read |
 | --- | --- |
-| Understand the whole request path in one page | [docs/architecture.md](docs/architecture.md) |
-| Change the Go backend: chat endpoint, tools, coding agent, workspace | [docs/server.md](docs/server.md) |
-| Change the UI: chat, tool cards, approval card, pipeline header | [docs/web.md](docs/web.md) |
-| Know what goes over the wire: request body, stream chunks, the `data-coder` part, approvals | [docs/protocol.md](docs/protocol.md) |
-| Add a tool, a pairing, a model, a sandbox or a sample project | [docs/extending.md](docs/extending.md) |
+| See one request end to end (two HTTP round trips) | [docs/architecture.md](docs/architecture.md) |
+| Change the Go server: chat endpoint, tools, coding-agent runner, workspace | [docs/server.md](docs/server.md) |
+| Change the UI: chat page, tool rows, approval card, coding-agent card, header | [docs/web.md](docs/web.md) |
+| Change what crosses the wire: request body, stream chunks, `data-coder`, approvals, `/api/status` | [docs/protocol.md](docs/protocol.md) |
+| Add a tool, approval, model, pairing, sandbox or sample project; test unreleased go-ai | [docs/extending.md](docs/extending.md) |
 | Fix something that doesn't run | [docs/troubleshooting.md](docs/troubleshooting.md) |
-
-All docs: [docs/README.md](docs/README.md).
 
 ## Layout
 
 ```
-server/              Go backend (package main), one concern per file
-  main.go            config, HTTP routes, CORS, startup
-  chat.go            POST /api/chat: the agent, models, system prompt
-  tools.go           the agent's tools (run_tests, list_files, read_file, delegate_to_coding_agent)
-  coder.go           runs Claude Code or Codex via the go-ai harness; activity log; diff
-  workspace.go       the project the agents work on (.data/workspace)
-  dotenv.go          .env loader
-web/                 Next.js app (React 19, Tailwind 4, @ai-sdk/react)
-  app/page.tsx       the chat page: useChat, pairing toggle, phase for the pipeline header
-  components/        ToolPart (tool rows, approval card), CoderCard (live log, diff), Pipeline, InlineText
-  lib/types.ts       TypeScript mirrors of the server's data shapes
-workspace-template/  the failing sample project, copied to .data/workspace on start and reset
-docs/                developer docs (this map's targets)
+server/              Go server (package main)
+web/                 Next.js app
+workspace-template/  the failing sample project
+docs/                these docs
 ```
+
+## Terms
+
+- **Shipyard** is the chat agent: a go-ai `ToolLoopAgent` running on the chat model.
+- **Coding agent** is Claude Code or Codex, run through the go-ai harness.
+- **Pairing** is a chat model plus a coding agent: `claude` (Anthropic + Claude Code) or `codex` (OpenAI + Codex). The header toggle picks one.
 
 ## Commands
 
@@ -41,23 +36,25 @@ docs/                developer docs (this map's targets)
 | --- | --- |
 | First setup (creates `.env`, installs web deps) | `make setup` |
 | Run server (:8080) and web (:3000) | `make dev` |
-| Test and type-check everything | `make test` |
-| Server tests only | `go test -race ./server` |
-| Web type-check only | `cd web && pnpm typecheck` |
+| Vet, test and type-check everything | `make test` |
 | Reset the sample project and sandboxes | `make reset` |
 
-`make test` must pass before you commit. CI (`.github/workflows/ci.yml`) runs the same checks plus `pnpm build`.
+`make test` must pass before you commit. CI (`.github/workflows/ci.yml`) runs `go vet`, `go test -race` and `go build` for the server, and `pnpm typecheck` and `pnpm build` for the web app.
 
 ## Rules
 
-- **Keep the server and web shapes in sync.** `coderState`/`coderEvent` in `server/coder.go` and `CoderState`/`CoderEvent` in `web/lib/types.ts` describe the same JSON. Change both together. See [docs/protocol.md](docs/protocol.md).
-- **Tool approval is a security boundary.** `delegate_to_coding_agent` must keep `ToolApproval: true`, and the agent must keep `ExperimentalToolApprovalSecret`. Don't add a code path that runs the coding agent without an approved call.
-- **No new Go dependencies** beyond go-ai without a strong reason. The server is meant to be read in one sitting.
+- **Keep the server and web shapes in sync.** `coderState`/`coderEvent` in `server/coder.go` and `CoderState`/`CoderEvent` in `web/lib/types.ts` describe the same JSON. Change both together.
+- **Tool approval is a security boundary.** `delegate_to_coding_agent` keeps `ToolApproval: true`, and the agent keeps `ExperimentalToolApprovalSecret`. No code path may run the coding agent without an approved call.
+- **No new Go dependencies** beyond go-ai without a strong reason.
 - **Never commit `.env` or anything under `.data/`.** Both are git-ignored.
-- **The local sandbox is not isolated.** Coding agents run as the current user. Keep the sample project small and don't point the workspace at real repos.
-- **Use the released go-ai.** `go.mod` pins a tagged version. To test unreleased SDK changes, use a local `go.work` (git-ignored); see [docs/extending.md](docs/extending.md#use-an-unreleased-go-ai).
-- Go: `gofmt`, standard library first, errors wrapped with context. TypeScript: strict mode, design tokens from `web/app/globals.css`, no new UI libraries.
+- **The local sandbox is not isolated.** Coding agents run as the current user. Keep the sample project small and don't point the workspace at a real repo.
+- **Pin a released go-ai in `go.mod`.** To test unreleased SDK changes, use a local `go.work`; see [docs/extending.md](docs/extending.md#use-an-unreleased-go-ai).
+- Go: `gofmt`, standard library first, errors wrapped with context. TypeScript: strict mode, tokens from `web/app/globals.css`, no new UI libraries.
+
+## go-ai source
+
+The SDK's source is in the module cache: `go list -m -f '{{.Dir}}' github.com/digitallysavvy/go-ai`. Its docs for agents start at https://goaisdk.com/llms.txt.
 
 ## Docs stay true
 
-`server/docs_test.go` checks that every file path and `server` symbol named in this file and in `docs/` exists. If you rename or move code, update the docs in the same change, or the test fails.
+`server/docs_test.go` runs with `make test`. It fails when `AGENTS.md` or a page in `docs/` links to a missing file, names a repo path that doesn't exist, or lists a symbol in a file-and-symbols table row that the file doesn't declare. It doesn't check prose claims such as ports or timeouts, so update those by hand when you change them.

@@ -28,6 +28,8 @@ export type DemoMessage = UIMessage<never, { coder: CoderState }>;
 
 export type AgentStatus = {
   available: boolean;
+  /** The environment variable that enables this pairing. */
+  apiKeyEnv: string;
   chatModel: string;
   coder: string;
 };

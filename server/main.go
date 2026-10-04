@@ -70,6 +70,7 @@ type config struct {
 	ClaudeChatModel string
 	OpenAIChatModel string
 	ClaudeCodeModel string
+	CodexModel      string // empty uses the Codex default
 	ApprovalSecret  []byte
 }
 
@@ -83,6 +84,7 @@ func loadConfig(root string) config {
 		ClaudeChatModel: envOr("CLAUDE_CHAT_MODEL", "claude-sonnet-5-5"),
 		OpenAIChatModel: envOr("OPENAI_CHAT_MODEL", "gpt-6-astra"),
 		ClaudeCodeModel: envOr("CLAUDE_CODE_MODEL", "claude-sonnet-5-5"),
+		CodexModel:      os.Getenv("CODEX_MODEL"),
 	}
 	// Approval requests are HMAC-signed so a client can't forge an approval
 	// for a call the server never issued. A random per-process secret is fine

@@ -28,8 +28,9 @@ export default function Page() {
       .then((r) => r.json())
       .then((s: { agents: Record<AgentKind, AgentStatus> }) => {
         setStatus(s.agents);
-        // Start on a pairing that has an API key configured.
-        if (!s.agents.claude.available && s.agents.codex.available) setAgent('codex');
+        // Start on the first pairing that has an API key configured.
+        const first = PAIRINGS.find((p) => s.agents[p.kind]?.available);
+        if (first && !s.agents[agentRef.current]?.available) setAgent(first.kind);
       })
       .catch((err) => console.error('GET /api/status failed', err));
   }, []);
@@ -76,7 +77,7 @@ export default function Page() {
             <Image src="/logo.png" alt="go-ai" width={57} height={44} priority />
             <div>
               <h1 className="text-[19px] font-extrabold leading-none tracking-tight">Shipyard</h1>
-              <p className="mt-0.5 hidden text-[12.5px] text-muted sm:block">Fixes failing Go code. Built with the Go AI SDK.</p>
+              <p className="mt-0.5 hidden text-[12.5px] text-muted sm:block">Fixes failing Go tests. The reference app for the Go AI SDK.</p>
             </div>
           </div>
 
@@ -90,7 +91,7 @@ export default function Page() {
                     role="radio"
                     aria-checked={agent === p.kind}
                     disabled={!available || busy}
-                    title={available ? undefined : `Add ${p.kind === 'claude' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'} to .env`}
+                    title={available ? undefined : `Add ${status?.[p.kind]?.apiKeyEnv ?? 'its API key'} to .env and restart the server`}
                     onClick={() => setAgent(p.kind)}
                     className={[
                       'rounded-[9px] px-3 py-1.5 text-[14px] font-bold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40',
@@ -132,7 +133,9 @@ export default function Page() {
 
           {error && (
             <p className="rounded-xl border-2 border-ink bg-fail/10 px-4 py-3 text-[14px] text-[#a3242a]">
-              The Go server returned an error: {error.message}. Check that it&apos;s running on {API_URL}.
+              {isNetworkError(error)
+                ? `Can't reach the server at ${API_URL}. Start it with make dev.`
+                : `Something went wrong: ${error.message}`}
             </p>
           )}
           <div ref={threadEnd} />
@@ -154,7 +157,7 @@ export default function Page() {
             id="prompt"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Shipyard about the project"
+            placeholder="Describe what's broken"
             autoComplete="off"
             className="min-w-0 flex-1 rounded-xl border-2 border-ink bg-paper px-4 py-2.5 text-[15px] placeholder:text-muted focus:bg-white focus:outline-none"
           />
@@ -180,15 +183,21 @@ export default function Page() {
   );
 }
 
+// fetch rejects with a TypeError when the server can't be reached; the
+// message differs by browser ("Failed to fetch", "Load failed", ...).
+function isNetworkError(error: Error) {
+  return error instanceof TypeError || /failed to fetch|load failed|networkerror/i.test(error.message);
+}
+
 function EmptyState({ onPick, coder }: { onPick: (text: string) => void; coder: string }) {
   return (
     <div className="pt-10">
       <h2 className="max-w-[22ch] text-[34px] font-extrabold leading-[1.1] tracking-tight">
-        A failing Go project, a Go agent, and {coder} on call.
+        Fix the failing shortlink tests.
       </h2>
       <p className="mt-3 max-w-[60ch] text-[16px] leading-relaxed text-muted">
-        The <code className="font-mono text-ink">shortlink</code> package has two failing tests. Ask Shipyard to fix it. It
-        investigates with its own tools, then asks before handing the change to a coding agent.
+        The <code className="font-mono text-ink">shortlink</code> package has two failing tests. Shipyard runs them, finds
+        the cause, and asks for your approval before {coder} edits any code.
       </p>
       <button
         type="button"

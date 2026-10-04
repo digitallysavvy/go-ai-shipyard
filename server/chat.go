@@ -25,11 +25,26 @@ const (
 	agentCodex  agentKind = "codex"  // OpenAI chat model + Codex
 )
 
+// CoderName is the coding agent's display name.
 func (k agentKind) CoderName() string {
-	if k == agentCodex {
+	switch k {
+	case agentClaude:
+		return "Claude Code"
+	case agentCodex:
 		return "Codex"
 	}
-	return "Claude Code"
+	return string(k)
+}
+
+// apiKeyEnv is the environment variable that enables the pairing.
+func (k agentKind) apiKeyEnv() string {
+	switch k {
+	case agentClaude:
+		return "ANTHROPIC_API_KEY"
+	case agentCodex:
+		return "OPENAI_API_KEY"
+	}
+	return ""
 }
 
 const systemPrompt = `You are Shipyard, an engineering assistant. You run on a Go backend built with the Go AI SDK.
@@ -116,12 +131,12 @@ func (s *server) chatModel(kind agentKind) (provider.LanguageModel, error) {
 	switch kind {
 	case agentClaude:
 		if s.cfg.AnthropicKey == "" {
-			return nil, fmt.Errorf("set ANTHROPIC_API_KEY in .env to use the Claude pairing")
+			return nil, fmt.Errorf("set %s in .env and restart the server to use %s", kind.apiKeyEnv(), kind.CoderName())
 		}
 		return anthropic.New(anthropic.Config{APIKey: s.cfg.AnthropicKey}).LanguageModel(s.cfg.ClaudeChatModel)
 	case agentCodex:
 		if s.cfg.OpenAIKey == "" {
-			return nil, fmt.Errorf("set OPENAI_API_KEY in .env to use the Codex pairing")
+			return nil, fmt.Errorf("set %s in .env and restart the server to use %s", kind.apiKeyEnv(), kind.CoderName())
 		}
 		return openai.New(openai.Config{APIKey: s.cfg.OpenAIKey}).LanguageModel(s.cfg.OpenAIChatModel)
 	}
@@ -140,8 +155,8 @@ func (s *server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"agents": map[string]interface{}{
-			"claude": map[string]interface{}{"available": s.cfg.AnthropicKey != "", "chatModel": s.cfg.ClaudeChatModel, "coder": agentClaude.CoderName()},
-			"codex":  map[string]interface{}{"available": s.cfg.OpenAIKey != "", "chatModel": s.cfg.OpenAIChatModel, "coder": agentCodex.CoderName()},
+			"claude": map[string]interface{}{"available": s.cfg.AnthropicKey != "", "chatModel": s.cfg.ClaudeChatModel, "coder": agentClaude.CoderName(), "apiKeyEnv": agentClaude.apiKeyEnv()},
+			"codex":  map[string]interface{}{"available": s.cfg.OpenAIKey != "", "chatModel": s.cfg.OpenAIChatModel, "coder": agentCodex.CoderName(), "apiKeyEnv": agentCodex.apiKeyEnv()},
 		},
 	})
 }

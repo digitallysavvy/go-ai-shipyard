@@ -95,7 +95,7 @@ export function CoderCard({ state }: { state: CoderState }) {
             {state.status === 'starting' && `Starting ${state.agent}`}
             {state.status === 'running' && `${state.agent} is working`}
             {state.status === 'done' && `${state.agent} finished`}
-            {state.status === 'error' && `${state.agent} stopped`}
+            {state.status === 'error' && `${state.agent} failed`}
           </h3>
         </div>
         <span className="font-mono text-[13px] tabular-nums text-muted">{seconds(state.elapsedMs)}</span>

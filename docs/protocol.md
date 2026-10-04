@@ -1,6 +1,6 @@
 # Protocol
 
-**Summary.** The browser and server speak the AI SDK UI message stream protocol (v1): the browser POSTs the whole conversation as UI messages, and the server answers with Server-Sent Events, one JSON chunk per event, ending with `data: [DONE]`. Shipyard adds one request field (`agent`) and one custom part (`data-coder`). Everything else is standard, which is why the frontend is plain `useChat`.
+The browser and server speak the AI SDK UI message stream protocol (v1): the browser POSTs the whole conversation as UI messages, and the server answers with Server-Sent Events, one JSON chunk per event, ending with `data: [DONE]`. Shipyard adds one request field (`agent`) and one custom part (`data-coder`). Everything else is standard, which is why the frontend is plain `useChat`.
 
 ## Request
 
@@ -61,7 +61,7 @@ Because `id` is the tool call ID, each write replaces the previous part in the m
 | `error` | string | When `error` |
 | `elapsedMs` | number | Since the run started |
 
-A `CoderEvent` (`coderEvent` in Go) has `id`, `kind` (`say`, `run`, `read`, `edit` or `tool`), `text`, and for `run` events `exit` and `output` (the last 8 lines).
+A `CoderEvent` (`coderEvent` in Go) has `id`, `kind` (`say`, `run`, `read`, `edit` or `tool`), `text`, and for `run` events `exit` and `output`. `output` keeps the last 8 lines, preceded by a `…` line when it was cut.
 
 Change the Go struct and the TypeScript type together.
 
@@ -70,6 +70,21 @@ Change the Go struct and the TypeScript type together.
 1. Turn 1 ends with `tool-approval-request` (`toolCallId`, `approvalId`, `signature`). `useChat` puts the tool part in state `approval-requested`.
 2. The user clicks Approve or Deny. `addToolApprovalResponse({ id: approvalId, approved })` sets the part to `approval-responded`.
 3. `lastAssistantMessageIsCompleteWithApprovalResponses` sees every approval answered and sends turn 2 with the updated messages.
-4. The server validates the messages and verifies `signature` with the approval secret. A forged or tampered approval is rejected. Approved calls run before the model is called; denied calls become `tool-output-denied`.
+4. The server validates the messages and verifies `signature` with the approval secret. A forged or tampered approval is rejected. Approved calls run before the model is called; denied calls become `tool-output-denied`. In go-ai, signing and verification are `ai.SignToolApproval` and `ai.VerifyToolApprovalSignature` ([tool_approval_signature.go](https://github.com/digitallysavvy/go-ai/blob/main/pkg/ai/tool_approval_signature.go)), and resuming is `ai.ResumeToolApprovals` ([tool_approval_resume.go](https://github.com/digitallysavvy/go-ai/blob/main/pkg/ai/tool_approval_resume.go)).
 
 If the server restarts between the two turns without `TOOL_APPROVAL_SECRET` set, the new random secret can't verify the old signature, and the approval is rejected. Set the variable to keep approvals valid across restarts.
+
+## Status
+
+`GET /api/status` tells the UI which pairings are usable:
+
+```json
+{
+  "agents": {
+    "claude": { "available": true, "chatModel": "claude-sonnet-5-5", "coder": "Claude Code", "apiKeyEnv": "ANTHROPIC_API_KEY" },
+    "codex": { "available": false, "chatModel": "gpt-6-astra", "coder": "Codex", "apiKeyEnv": "OPENAI_API_KEY" }
+  }
+}
+```
+
+`handleStatus` in `server/chat.go` builds it; `AgentStatus` in `web/lib/types.ts` mirrors one entry.

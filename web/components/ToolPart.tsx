@@ -34,7 +34,7 @@ function TestsPart({ part }: { part: AnyToolPart }) {
           <span>
             <code className="font-mono text-ink">go test ./...</code>{' '}
             <span className={run.passed ? 'font-semibold text-pass' : 'font-semibold text-fail'}>
-              {run.passed ? 'all tests pass' : `${failures || 'some'} failing`}
+              {run.passed ? 'all tests pass' : failures ? `${failures} tests failing` : 'tests failing'}
             </span>
           </span>
           <span className="text-[12px] underline decoration-dotted group-open:hidden">show output</span>
@@ -62,6 +62,22 @@ export function ToolPart({
 
   if (part.state === 'output-error') {
     return <Row tone="fail">{name} failed: {part.errorText}</Row>;
+  }
+
+  // Any tool with ToolApproval set on the server waits here for the user.
+  // delegate_to_coding_agent has its own wording below.
+  if (part.state === 'approval-requested' && name !== 'delegate_to_coding_agent') {
+    return (
+      <ApprovalCard
+        title={`Run ${name}?`}
+        detail="Shipyard wants to run this tool with this input."
+        input={JSON.stringify(part.input, null, 2)}
+        onDecide={(approved) => onApproval(part.approval.id, approved)}
+      />
+    );
+  }
+  if (part.state === 'output-denied' && name !== 'delegate_to_coding_agent') {
+    return <Row>You denied {name}.</Row>;
   }
 
   switch (name) {
@@ -104,33 +120,12 @@ function DelegatePart({
 
   if (part.state === 'approval-requested') {
     return (
-      <section className="rounded-2xl border-2 border-ink bg-amber p-4 shadow-ink-lg">
-        <h3 className="text-[17px] font-bold">Let {agent} change your code?</h3>
-        <p className="mt-1 text-[14px] text-ink/75">
-          It will edit files and run commands in a sandbox copy of the project. Changes come back here when it finishes.
-        </p>
-        {task && (
-          <blockquote className="mt-3 rounded-lg border-2 border-ink bg-white px-3 py-2 text-[14px] leading-snug">
-            {task}
-          </blockquote>
-        )}
-        <div className="mt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={() => onApproval(part.approval.id, true)}
-            className="rounded-xl border-2 border-ink bg-ink px-5 py-2 text-[15px] font-bold text-white shadow-[3px_3px_0_0_var(--color-go)] hover:bg-go-deep"
-          >
-            Approve
-          </button>
-          <button
-            type="button"
-            onClick={() => onApproval(part.approval.id, false)}
-            className="rounded-xl border-2 border-ink bg-white px-5 py-2 text-[15px] font-bold hover:bg-gopher-soft"
-          >
-            Deny
-          </button>
-        </div>
-      </section>
+      <ApprovalCard
+        title={`Let ${agent} edit the project?`}
+        detail="It edits files and runs commands in a sandbox copy of the project. When it finishes, the diff appears here."
+        input={task}
+        onDecide={(approved) => onApproval(part.approval.id, approved)}
+      />
     );
   }
 
@@ -139,5 +134,46 @@ function DelegatePart({
   }
 
   if (coder) return <CoderCard state={coder} />;
-  return <Row tone="busy">Approved. Starting {agent}</Row>;
+  return <Row tone="busy">Approved. Starting {agent}…</Row>;
+}
+
+/** The Approve / Deny card for a tool call that needs the user's approval. */
+function ApprovalCard({
+  title,
+  detail,
+  input,
+  onDecide,
+}: {
+  title: string;
+  detail: string;
+  input?: string;
+  onDecide: (approved: boolean) => void;
+}) {
+  return (
+    <section className="rounded-2xl border-2 border-ink bg-amber p-4 shadow-ink-lg">
+      <h3 className="text-[17px] font-bold">{title}</h3>
+      <p className="mt-1 text-[14px] text-ink/75">{detail}</p>
+      {input && (
+        <blockquote className="mt-3 whitespace-pre-wrap rounded-lg border-2 border-ink bg-white px-3 py-2 text-[14px] leading-snug">
+          {input}
+        </blockquote>
+      )}
+      <div className="mt-4 flex gap-3">
+        <button
+          type="button"
+          onClick={() => onDecide(true)}
+          className="rounded-xl border-2 border-ink bg-ink px-5 py-2 text-[15px] font-bold text-white shadow-[3px_3px_0_0_var(--color-go)] hover:bg-go-deep"
+        >
+          Approve
+        </button>
+        <button
+          type="button"
+          onClick={() => onDecide(false)}
+          className="rounded-xl border-2 border-ink bg-white px-5 py-2 text-[15px] font-bold hover:bg-gopher-soft"
+        >
+          Deny
+        </button>
+      </div>
+    </section>
+  );
 }

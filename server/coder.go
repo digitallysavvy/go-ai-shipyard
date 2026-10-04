@@ -86,7 +86,7 @@ func (c *coder) newHarnessAgent(kind agentKind, onSession func(context.Context, 
 			return nil, errors.New("OPENAI_API_KEY is not set, so Codex can't run")
 		}
 		settings.Harness = codex.New(codex.Settings{})
-		settings.Model = os.Getenv("CODEX_MODEL")
+		settings.Model = c.cfg.CodexModel
 		settings.Sandbox = local.NewProvider(local.Options{RootDir: sandboxRoot, Ports: []int{4318}})
 	default:
 		return nil, fmt.Errorf("unknown coding agent %q", kind)

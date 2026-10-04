@@ -18,13 +18,13 @@ Shipyard is a chat app that fixes a failing Go project.
 4. **A coding agent makes the fix.** After you approve, Claude Code or Codex edits a sandbox copy of the project. Its commands and edits stream into the chat as they happen.
 5. **It checks the result.** The changes come back as a diff, Shipyard reruns the tests, and it tells you what was wrong and what changed.
 
-A toggle switches between **Claude Code** (with an Anthropic model running the chat) and **Codex** (with an OpenAI model). Everything else stays the same.
+A toggle in the header picks the **pairing**: **Claude Code** with an Anthropic chat model, or **Codex** with an OpenAI chat model. The steps are the same for both.
 
 ## Why it exists
 
-Shipyard is the reference app for the [Go AI SDK](https://goaisdk.com) ([go-ai](https://github.com/digitallysavvy/go-ai)). Each step above exercises one SDK feature, so you can copy the pattern you need:
+Shipyard is the reference app for the [Go AI SDK](https://goaisdk.com) ([go-ai](https://github.com/digitallysavvy/go-ai)). It shows four go-ai patterns you can copy:
 
-- **A React chat UI on a Go backend.** The browser uses the stock `useChat` hook from `@ai-sdk/react`. The Go server speaks the same streaming protocol as a TypeScript AI SDK backend, so the frontend needs no changes.
+- **A React chat UI on a Go backend.** The browser uses the stock `useChat` hook from `@ai-sdk/react`. The Go server speaks the same streaming protocol as a TypeScript AI SDK backend, so the frontend is stock `useChat`.
 - **An agent with tools.** A go-ai `ToolLoopAgent` investigates with `run_tests`, `list_files` and `read_file`, and streams every step.
 - **Human approval for risky tools.** `delegate_to_coding_agent` requires approval. The server signs each approval request and checks the signature on your answer, so the browser can't forge one.
 - **Coding agents from Go.** The go-ai harness runs Claude Code or Codex in a sandbox, streams their activity into the chat, and reads the changed files back.
@@ -56,11 +56,11 @@ make dev            # Go server on :8080, web app on :3000
 
 Open http://localhost:3000 and click the suggested prompt.
 
-The first coding-agent run takes longer: the harness installs the Claude Code or Codex bridge into the sandbox. Later runs start in a few seconds.
+The first coding-agent run per pairing takes a minute or more while the harness installs the Claude Code or Codex bridge into the sandbox. Later runs start in a few seconds.
 
 ## Code tour
 
-For the full developer docs, start at [docs/README.md](docs/README.md). Coding agents should read [AGENTS.md](AGENTS.md) first.
+The developer docs start at [docs/README.md](docs/README.md). AI coding tools working on this repo should read [AGENTS.md](AGENTS.md) first.
 
 | File | What it does |
 | --- | --- |
@@ -69,9 +69,9 @@ For the full developer docs, start at [docs/README.md](docs/README.md). Coding a
 | [`server/coder.go`](server/coder.go) | Runs Claude Code or Codex through the go-ai harness, streams its activity as a `data-coder` part, and syncs changes back. |
 | [`server/workspace.go`](server/workspace.go) | The project the agents work on, reset from [`workspace-template/`](workspace-template). |
 | [`web/app/page.tsx`](web/app/page.tsx) | The chat: `useChat`, the pairing toggle, and the request pipeline in the header. |
-| [`web/components/ToolPart.tsx`](web/components/ToolPart.tsx) | Tool calls, the approval card, and the coding-agent card. |
+| [`web/components/ToolPart.tsx`](web/components/ToolPart.tsx) | Tool calls, approval cards, and the coding-agent card. |
 
-The heart of the server is a few lines of go-ai:
+The chat endpoint in `server/chat.go` is built from this:
 
 ```go
 chunks, _ := ai.CreateUIMessageStreamWithOptions(ctx, ai.UIMessageStreamOptions{
@@ -112,11 +112,12 @@ Set these in `.env`. See [`.env.example`](.env.example) for the full list.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | | Enables the Claude pairing |
-| `OPENAI_API_KEY` | | Enables the Codex pairing |
-| `CLAUDE_CHAT_MODEL` | `claude-sonnet-5-5` | Chat model for the Claude pairing |
+| `ANTHROPIC_API_KEY` | | Enables Claude Code and the Anthropic chat model |
+| `OPENAI_API_KEY` | | Enables Codex and the OpenAI chat model |
+| `CLAUDE_CHAT_MODEL` | `claude-sonnet-5-5` | Chat model when Claude Code is selected |
 | `CLAUDE_CODE_MODEL` | `claude-sonnet-5-5` | Model Claude Code uses |
-| `OPENAI_CHAT_MODEL` | `gpt-6-astra` | Chat model for the Codex pairing |
+| `OPENAI_CHAT_MODEL` | `gpt-6-astra` | Chat model when Codex is selected |
+| `CODEX_MODEL` | Codex default | Model Codex uses |
 | `TOOL_APPROVAL_SECRET` | random per process | Signs approval requests; set it to keep approvals valid across restarts |
 
 ## Safety
